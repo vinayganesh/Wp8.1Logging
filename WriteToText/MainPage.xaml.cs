@@ -10,6 +10,9 @@ using Microsoft.Phone.Shell;
 using WriteToText.Resources;
 using Windows.Storage;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using Windows.Foundation.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace WriteToText
 {
@@ -17,10 +20,12 @@ namespace WriteToText
     {
         StorageFolder folder;
         StorageFile TimeLogFile;
+        Windows.Storage.StorageFolder localFolder = Windows.Storage.ApplicationData.Current.LocalFolder;
 
         public MainPage()
         {
             InitializeComponent();
+
         }
 
         protected async override void OnNavigatedTo(System.Windows.Navigation.NavigationEventArgs e)
@@ -74,5 +79,50 @@ namespace WriteToText
            
 
        }
+
+       // Write data to a file
+       public async void WriteTimestamp()
+       {
+          StorageFile sampleFile = await localFolder.CreateFileAsync("dataFile.log", CreationCollisionOption.ReplaceExisting);
+          await FileIO.WriteTextAsync(sampleFile, DateTime.Now.ToString());
+          MessageBox.Show("Done Writing");
+       }
+
+       // Read data from a file
+       public async Task ReadTimestamp()
+       {
+           try
+           {
+               StorageFile sampleFile = await localFolder.GetFileAsync("dataFile.log");
+               String timestamp = await FileIO.ReadTextAsync(sampleFile);
+               MessageBox.Show(timestamp);
+               // Data is contained in timestamp
+           }
+           catch (Exception)
+           {
+               // Timestamp not found
+           }
+       }
+
+       private void btnToLocalFolder_Click(object sender, RoutedEventArgs e)
+       {
+           WriteTimestamp();
+       }
+
+       private async void btnReadLocalFolder_Copy_Click(object sender, RoutedEventArgs e)
+       {
+           await ReadTimestamp();
+       }
+
+       public void sendError([CallerMemberName] string callerName = "")
+       {
+           MessageBox.Show("called by" + callerName);
+       }
+
+       private void btnTrace_Click(object sender, RoutedEventArgs e)
+       {
+           sendError();
+       }
+
     }
 }
